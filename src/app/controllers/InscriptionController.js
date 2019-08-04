@@ -1,4 +1,5 @@
-import { isBefore, closestTo, differenceInHours } from "date-fns";
+import { isBefore, closestTo, differenceInHours, format } from "date-fns";
+import pt from "date-fns/locale/pt";
 import { Op } from "sequelize";
 
 import Meetup from "../models/Meetup";
@@ -84,16 +85,35 @@ class InscriptionController {
      * Save to database
      */
 
-    // await participant.addMeetup(meetup);
+    await participant.addMeetup(meetup);
 
     /*
      * Send an email
      */
 
+    const participantsNumber = await ParticipantsMeetup.findAll({
+      where: {
+        meetup_id: meetup.id
+      },
+      attributes: ["id"]
+    }).reduce(counter => counter + 1, 0);
+
+    // console.log(participantsNumber);
     await Mail.sendMail({
       to: `${meetup.organizer.name} <${meetup.organizer.email}>`,
       subject: "Nova inscrição",
-      text: "You have a new inscription"
+      template: "cancellation",
+      context: {
+        organizer: meetup.organizer.name,
+        meetupTitle: meetup.title,
+        name: participant.name,
+        email: participant.email,
+        date: format(meetup.date, "'dia' dd 'de' MMMM', às' H:mm'h'", {
+          locale: pt
+        }),
+        description: meetup.description,
+        number: participantsNumber
+      }
     });
 
     return res.json();
