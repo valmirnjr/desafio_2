@@ -25,10 +25,14 @@ class OrganizerController {
   async delete(req, res) {
     const meetupId = req.params.id;
 
-    const meetupExists = await Meetup.findByPk(meetupId);
+    const meetup = await Meetup.findByPk(meetupId);
 
-    if (!meetupExists) {
+    if (!meetup) {
       return res.status(422).json({ error: "Meetup does not exist" });
+    }
+
+    if (meetup.user_id !== req.userId) {
+      return res.status(403).json({ error: "You can't delete this meetup" });
     }
     await Meetup.destroy({
       where: {
