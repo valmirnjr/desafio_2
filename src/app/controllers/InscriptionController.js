@@ -4,12 +4,21 @@ import { Op } from "sequelize";
 import Meetup from "../models/Meetup";
 import User from "../models/User";
 import ParticipantsMeetup from "../models/PartipantsMeetup";
+import Mail from "../../lib/Mail";
 
 class InscriptionController {
   async store(req, res) {
     const { meetupId } = req.params;
 
-    const meetup = await Meetup.findByPk(meetupId);
+    const meetup = await Meetup.findByPk(meetupId, {
+      include: [
+        {
+          model: User,
+          as: "organizer",
+          attributes: ["name", "email"]
+        }
+      ]
+    });
 
     if (!meetup) {
       return res
@@ -71,7 +80,21 @@ class InscriptionController {
         .json({ error: "You already have a meetup close to this date" });
     }
 
-    await participant.addMeetup(meetup);
+    /*
+     * Save to database
+     */
+
+    // await participant.addMeetup(meetup);
+
+    /*
+     * Send an email
+     */
+
+    await Mail.sendMail({
+      to: `${meetup.organizer.name} <${meetup.organizer.email}>`,
+      subject: "Nova inscrição",
+      text: "You have a new inscription"
+    });
 
     return res.json();
   }
