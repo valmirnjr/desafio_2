@@ -88,6 +88,9 @@ class InscriptionController {
       where: {
         id: {
           [Op.or]: userInscriptions
+        },
+        date: {
+          [Op.gte]: new Date() // Only show future meetups
         }
       },
       order: ["date"],
