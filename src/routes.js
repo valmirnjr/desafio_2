@@ -32,4 +32,6 @@ routes.get("/meetups", MeetupController.index);
 
 routes.post("/inscriptions/:meetupId", InscriptionController.store);
 
+routes.get("/inscriptions", InscriptionController.index);
+
 export default routes;

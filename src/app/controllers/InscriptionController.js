@@ -1,5 +1,5 @@
 import { isBefore, closestTo, differenceInHours } from "date-fns";
-import { inspect } from "util";
+import { Op } from "sequelize";
 
 import Meetup from "../models/Meetup";
 import User from "../models/User";
@@ -25,21 +25,14 @@ class InscriptionController {
       });
     }
 
-    const userInscriptions = await ParticipantsMeetup.findAll({
-      where: {
-        participant_id: participant.id
-      },
-      attributes: ["meetup_id"]
-    }).map(element => element.meetup_id);
-
-    /*     const checkUserInscripted = await ParticipantsMeetup.findOne({
+    const checkUserInscripted = await ParticipantsMeetup.findOne({
       where: {
         participant_id: participant.id,
         meetup_id: meetup.id
       }
-    }); */
+    });
 
-    if (userInscriptions.includes(meetup.id)) {
+    if (checkUserInscripted) {
       return res
         .status(422)
         .json({ error: "You are already inscripted in this meetup" });
@@ -56,6 +49,13 @@ class InscriptionController {
     /*
      * Check close meetups
      */
+
+    const userInscriptions = await ParticipantsMeetup.findAll({
+      where: {
+        participant_id: participant.id
+      },
+      attributes: ["meetup_id"]
+    }).map(element => element.meetup_id);
 
     const userMeetupsDates = await Meetup.findAll({
       attributes: ["id", "date"]
@@ -74,6 +74,34 @@ class InscriptionController {
     await participant.addMeetup(meetup);
 
     return res.json();
+  }
+
+  async index(req, res) {
+    const userInscriptions = await ParticipantsMeetup.findAll({
+      where: {
+        participant_id: req.userId
+      },
+      attributes: ["meetup_id"]
+    }).map(element => element.meetup_id);
+
+    const userMeetups = await Meetup.findAll({
+      where: {
+        id: {
+          [Op.or]: userInscriptions
+        }
+      },
+      order: ["date"],
+      attributes: [
+        "title",
+        "description",
+        "location",
+        "date",
+        "banner_url",
+        "path"
+      ]
+    });
+
+    return res.json(userMeetups);
   }
 }
 
