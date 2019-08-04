@@ -5,6 +5,7 @@ import UserController from "./app/controllers/UserController";
 import SessionController from "./app/controllers/SessionController";
 import FileController from "./app/controllers/FileController";
 import MeetupController from "./app/controllers/MeetupController";
+import InscriptionController from "./app/controllers/InscriptionController";
 import authMiddleware from "./app/middlewares/auth";
 
 import multerConfig from "./config/multer";
@@ -28,5 +29,7 @@ routes.post("/meetups", upload.single("banner"), MeetupController.store);
 routes.put("/meetups/:id", upload.single("banner"), MeetupController.update);
 
 routes.get("/meetups", MeetupController.index);
+
+routes.post("/inscriptions/:meetupId", InscriptionController.store);
 
 export default routes;

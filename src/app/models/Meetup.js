@@ -28,6 +28,12 @@ class Meetup extends Model {
 
   static associate(models) {
     this.belongsTo(models.User, { foreignKey: "user_id", as: "organizer" });
+    this.belongsToMany(models.User, {
+      through: "ParticipantsMeetup",
+      as: "participant",
+      foreignKey: "meetup_id",
+      otherKey: "participant_id"
+    });
   }
 }
 
